@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by bcordes on 5/1/17.
- */
 public class Character {
     private static final List<Integer> unknownBytes = List.of(0x06, 0x07, 0x08, 0x0f, 0x10, 0x11, 0x12);
 
