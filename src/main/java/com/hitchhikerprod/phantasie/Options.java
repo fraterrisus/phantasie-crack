@@ -4,10 +4,13 @@ public class Options {
     private int argPointer;
 
     private boolean binary;
+    private boolean inventory;
     private String filename;
     private boolean spells;
 
     private Options() {
+        this.binary = false;
+        this.inventory = false;
         this.spells = false;
     }
 
@@ -38,6 +41,14 @@ public class Options {
         this.binary = val;
     }
 
+    public boolean showInventory() {
+        return this.inventory;
+    }
+
+    private void setInventory(boolean val) {
+        this.inventory = val;
+    }
+
     public String getFilename() {
         return this.filename;
     }
@@ -58,6 +69,15 @@ public class Options {
         if (args[argPointer].equals("--binary")) {
             setBinary(true);
             argPointer++;
+        } else if (args[argPointer].equals("--nobinary")) {
+            setBinary(false);
+            argPointer++;
+        } else if (args[argPointer].equals("--inventory")) {
+            setInventory(true);
+            argPointer++;
+        } else if (args[argPointer].equals("--noinventory")) {
+            setInventory(false);
+            argPointer++;
         } else if (args[argPointer].equals("--spells")) {
             setSpells(true);
             argPointer++;
@@ -77,6 +97,9 @@ public class Options {
         if (args[argPointer].equals("-b")) {
             setBinary(true);
             argPointer++;
+        } else if (args[argPointer].equals("-i")) {
+            setInventory(true);
+            argPointer++;
         } else if (args[argPointer].equals("-s")) {
             setSpells(true);
             argPointer++;
@@ -90,9 +113,10 @@ public class Options {
     private void helpMessage() {
         System.out.println("Usage: java -jar phantasie.jar [options] filename.img");
         System.out.println("Options:");
-        System.out.println("  -b, --binary          Dump bytes instead of structured data");
+        System.out.println("  -b, --[no]binary      Dump bytes instead of structured data (default: off)");
+        System.out.println("  -i, --[no]inventory   Show character inventory (default: off)");
         System.out.println("      --help            Display this message");
-        System.out.println("  -s, --[no]spells      Enable display of spells (default: off)");
+        System.out.println("  -s, --[no]spells      Show spells known and learnable (default: off)");
         System.exit(0);
     }
 }

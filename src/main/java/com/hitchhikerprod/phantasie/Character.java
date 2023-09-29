@@ -1,7 +1,6 @@
 package com.hitchhikerprod.phantasie;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Formatter;
 import java.util.HashMap;
@@ -33,8 +32,8 @@ public class Character {
     private final int score;
     private final int level;
     private final int experience; // 3B
-    private final Set<Integer> spellsKnown;
-    private final Set<Integer> spellsAvailable;
+    private final List<Integer> spellsKnown;
+    private final List<Integer> spellsAvailable;
     private final CharacterClass charClass;
     private final Race race;
     private final List<Integer> equipment;
@@ -62,8 +61,8 @@ public class Character {
         rosterId        = getByte(data, charNum, IDX_ROSTER_ID);
         experience      = getBytes(data, charNum, IDX_EXP, 3);
         powerBoost      = getByte(data, charNum, IDX_POWER_UP);
-        spellsKnown     = new HashSet<>();
-        spellsAvailable = new HashSet<>();
+        spellsKnown     = new ArrayList<>();
+        spellsAvailable = new ArrayList<>();
         for (int i = 0; i < 54; i++) {
             final int b = getByte(data, charNum, IDX_SPELLS + i);
             if (b == 1) {
@@ -85,7 +84,8 @@ public class Character {
 
         equipment       = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
-            equipment.add(getByte(data, charNum, IDX_EQUIP + i));
+            final int id = getByte(data, charNum, IDX_EQUIP + i);
+            if (id > 0) { equipment.add(id); }
         }
 
         race            = Race.from(getByte(data, charNum, IDX_RACE));
@@ -216,24 +216,37 @@ public class Character {
         unknown.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .forEachOrdered(e -> fmt.format(" %03d", e.getValue()));
-/*
-        buffer.append("\n");
-        buffer.append("    Inventory:");
-        equipment.forEach(e -> fmt.format(" %03d", e));
-*/
         return buffer.toString();
+    }
+
+    private void paginateData(Formatter fmt, List<Integer> ids, List<String> names) {
+        int set = 0;
+        for (Integer id : ids) {
+            if (set == 4) {
+                fmt.format("\n    ");
+                set = 0;
+            }
+            fmt.format("  %02d:%s", id+1, names.get(id));
+            set++;
+        }
     }
 
     public String spellsToString() {
         final StringBuilder buffer = new StringBuilder();
         final Formatter fmt = new Formatter(buffer);
         buffer.append("  Spells known:");
-        spellsKnown.stream().sorted()
-            .forEachOrdered(e -> fmt.format(" (%02d)%s", e+1, SPELL_NAMES.get(e)));
+        paginateData(fmt, spellsKnown, SPELL_NAMES);
         buffer.append("\n");
         buffer.append("  Spells available:");
-        spellsAvailable.stream().sorted()
-            .forEachOrdered(e -> fmt.format(" (%02d)%s", e+1, SPELL_NAMES.get(e)));
+        paginateData(fmt, spellsAvailable, SPELL_NAMES);
+        return buffer.toString();
+    }
+
+    public String equipmentToString() {
+        final StringBuilder buffer = new StringBuilder();
+        final Formatter fmt = new Formatter(buffer);
+        buffer.append("  Inventory:");
+        paginateData(fmt, equipment, Equipment.NAMES);
         return buffer.toString();
     }
 
