@@ -6,11 +6,13 @@ public class Options {
     private boolean binary;
     private boolean inventory;
     private String filename;
+    private boolean skills;
     private boolean spells;
 
     private Options() {
         this.binary = false;
         this.inventory = false;
+        this.skills = false;
         this.spells = false;
     }
 
@@ -57,6 +59,14 @@ public class Options {
         this.filename = val;
     }
 
+    public boolean showSkills() {
+        return this.skills;
+    }
+
+    private void setSkills(boolean val) {
+        this.skills = val;
+    }
+
     public boolean showSpells() {
         return this.spells;
     }
@@ -77,6 +87,12 @@ public class Options {
             argPointer++;
         } else if (args[argPointer].equals("--noinventory")) {
             setInventory(false);
+            argPointer++;
+        } else if (args[argPointer].equals("--skills")) {
+            setSkills(true);
+            argPointer++;
+        } else if (args[argPointer].equals("--noskills")) {
+            setSkills(false);
             argPointer++;
         } else if (args[argPointer].equals("--spells")) {
             setSpells(true);
@@ -103,6 +119,9 @@ public class Options {
         } else if (args[argPointer].equals("-s")) {
             setSpells(true);
             argPointer++;
+        } else if (args[argPointer].equals("-2")) {
+            setSkills(true);
+            argPointer++;
         } else {
             System.out.println("Unrecognized command line argument: " + args[argPointer]);
             System.out.println();
@@ -117,6 +136,7 @@ public class Options {
         System.out.println("  -i, --[no]inventory   Show character inventory (default: off)");
         System.out.println("      --help            Display this message");
         System.out.println("  -s, --[no]spells      Show spells known and learnable (default: off)");
+        System.out.println("  -2, --[no]skills      Show second line with skills and runes (default: off)");
         System.exit(0);
     }
 }

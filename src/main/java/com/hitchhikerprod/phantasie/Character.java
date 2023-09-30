@@ -16,12 +16,23 @@ public class Character {
     private final Map<Integer, Integer> unknown;
 
     private final String name;
+
     private final int strength;
     private final int intelligence;
     private final int dexterity;
     private final int constitution;
     private final int charisma;
     private final int luck;
+
+    private final int attackSkill;
+    private final int parrySkill;
+    private final int findItemSkill;
+    private final int spotTrapSkill;
+    private final int disarmTrapSkill;
+    private final int listenSkill;
+    private final int pickLockSkill;
+    private final int swimSkill;
+
     private final int age; // - 17
     private final int maxPower;
     private final int curPower;
@@ -30,8 +41,9 @@ public class Character {
     private final int curHealth;
     private final int gold; // 2B
     private final int score;
-    private final int level;
+    private final Set<Rune> runes;
     private final int experience; // 3B
+    private final int level;
     private final List<Integer> spellsKnown;
     private final List<Integer> spellsAvailable;
     private final CharacterClass charClass;
@@ -50,12 +62,32 @@ public class Character {
         constitution    = getByte(data, charNum, IDX_CON);
         charisma        = getByte(data, charNum, IDX_CHR);
         luck            = getByte(data, charNum, IDX_LUC);
+
         //age             = getByte(data, charNum, IDX_AGE);
         maxPower        = getByte(data, charNum, IDX_MPOW);
         curPower        = getByte(data, charNum, IDX_CPOW);
         maxHealth       = getByte(data, charNum, IDX_MHP);
         curHealth       = getByte(data, charNum, IDX_CHP);
+
         gold            = getBytes(data, charNum, IDX_GOLD, 2);
+
+        attackSkill     = getByte(data, charNum, IDX_ATTACK);
+        parrySkill      = getByte(data, charNum, IDX_PARRY);
+        findItemSkill   = getByte(data, charNum, IDX_FINDITEM);
+        spotTrapSkill   = getByte(data, charNum, IDX_SPOTTRAP);
+        disarmTrapSkill = getByte(data, charNum, IDX_DISARM);
+        listenSkill     = getByte(data, charNum, IDX_LISTEN);
+        pickLockSkill   = getByte(data, charNum, IDX_PICKLOCK);
+        swimSkill       = getByte(data, charNum, IDX_SWIM);
+
+        runes = new HashSet<>();
+        for (int i = 0; i < 5; i++) {
+            final int b = getByte(data, charNum, IDX_RUNES + i);
+            if (b > 0) {
+                runes.add(Rune.from(i));
+            }
+        }
+
         score           = getByte(data, charNum, IDX_SCORE);
         level           = getByte(data, charNum, IDX_LEVEL);
         rosterId        = getByte(data, charNum, IDX_ROSTER_ID);
@@ -74,7 +106,7 @@ public class Character {
 
         final StringBuilder nameBuilder = new StringBuilder();
         final int nameIndex = addressOf(charNum, IDX_NAME);
-        for (int i = 0; i < 12; i++) {
+        for (int i = 0; i < 20; i++) {
             final char c = (char) (data[nameIndex + i] & 0x7f);
             if (c > 0) { nameBuilder.append(c); }
         }
@@ -85,16 +117,13 @@ public class Character {
         equipment       = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
             final int id = getByte(data, charNum, IDX_EQUIP + i);
-            if (id > 0) { equipment.add(id); }
+            if (id > 0) { equipment.add(id-1); }
         }
 
         race            = Race.from(getByte(data, charNum, IDX_RACE));
         weaponRating    = getByte(data, charNum, IDX_WEAPON);
         armorRating     = getByte(data, charNum, IDX_ARMOR);
         shieldRating    = getByte(data, charNum, IDX_SHIELD);
-
-        // short[] equipData = getWord(data, charNum, IDX_EQUIP, 0x20);
-        //equipment = new Equipment(equipData);
 
         unknown = new HashMap<>();
         for (int idx : unknownBytes) {
@@ -121,6 +150,26 @@ public class Character {
         return value;
     }
 
+    enum Rune {
+        AIR(0), EARTH(1), FIRE(2), WATER(3), GOD(4);
+        
+        private final int diskValue;
+
+        Rune(int diskValue) { this.diskValue = diskValue; }
+
+        private static Rune from(int val) {
+            return EnumSet.allOf(Rune.class).stream()
+                .filter(a -> a.diskValue == val)
+                .findFirst().orElseThrow(IllegalArgumentException::new);
+        }
+
+        private int toInt() { return diskValue; }
+
+        private String toAbbr() {
+            return name().substring(0,3);
+        }
+    }
+    
     enum CharacterClass {
         THIEF(0), MONK(1), RANGER(2), FIGHTER(3),
         PRIEST(4), WIZARD(5);
@@ -185,8 +234,7 @@ public class Character {
         fmt.format("%2s ", "Wp");
         fmt.format("%2s ", "Ar");
         fmt.format("%2s ", "Sh");
-        unknownBytes.forEach(e -> fmt.format(" %03x", e));
-        //buffer.append("Statuses");
+        //unknownBytes.forEach(e -> fmt.format(" %03x", e));
         return buffer.toString();
     }
 
@@ -213,10 +261,25 @@ public class Character {
         fmt.format("%02d ", weaponRating);
         fmt.format("%02d ", armorRating);
         fmt.format("%02d ", shieldRating);
+
+        /*
         unknown.entrySet().stream()
             .sorted(Map.Entry.comparingByKey())
             .forEachOrdered(e -> fmt.format(" %03d", e.getValue()));
+*/
         return buffer.toString();
+    }
+
+    private String runesToString() {
+        final StringBuilder runeString = new StringBuilder();
+        for (Rune r : Rune.values()) {
+            if (runes.contains(r)) {
+                runeString.append(r.name().charAt(0));
+            } else {
+                runeString.append("-");
+            }
+        }
+        return runeString.toString();
     }
 
     private void paginateData(Formatter fmt, List<Integer> ids, List<String> names) {
@@ -229,6 +292,16 @@ public class Character {
             fmt.format("  %02d:%s", id+1, names.get(id));
             set++;
         }
+    }
+
+    public String skillsToString() {
+        final StringBuilder buffer = new StringBuilder();
+        final Formatter fmt = new Formatter(buffer);
+        fmt.format("  Att:%3d  Par:%3d  Itm:%3d  Spt:%3d  Dis:%3d  Lok:%3d  Swm:%3d",
+            attackSkill, parrySkill, findItemSkill, spotTrapSkill, disarmTrapSkill,
+            pickLockSkill, swimSkill);
+        fmt.format("  Runes:%5s", runesToString());
+        return buffer.toString();
     }
 
     public String spellsToString() {
@@ -293,14 +366,10 @@ public class Character {
     // private static final int IDX_      = 0x027;
     // private static final int IDX_      = 0x028;
     private static final int IDX_SCORE    = 0x029;
-    // private static final int IDX_      = 0x02a; //   1   1 runes?
-    // private static final int IDX_      = 0x02b; //   0   0
-    // private static final int IDX_      = 0x02c; //   0   0
-    // private static final int IDX_      = 0x02d; //   0   0
-    // private static final int IDX_      = 0x02e; //   0   0
-    // private static final int IDX_      = 0x02f; //   4   4
-    // private static final int IDX_      = 0x030; //  23  23
-    // private static final int IDX_      = 0x031; //  51  51
+    private static final int IDX_RUNES    = 0x02a; // 5 bytes
+    // private static final int IDX_      = 0x02f;
+    // private static final int IDX_      = 0x030;
+    // private static final int IDX_      = 0x031;
     private static final int IDX_EXP      = 0x032; // 3 bytes
     private static final int IDX_LEVEL    = 0x035;
     // private static final int IDX_      = 0x036; //   3   3
