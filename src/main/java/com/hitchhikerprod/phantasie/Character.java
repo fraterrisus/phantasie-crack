@@ -34,6 +34,7 @@ public class Character {
     private final int swimSkill;
 
     private final int age; // - 17
+    private final int limitPower;
     private final int maxPower;
     private final int curPower;
     private final int powerBoost;
@@ -64,8 +65,9 @@ public class Character {
         luck            = getByte(data, charNum, IDX_LUC);
 
         //age             = getByte(data, charNum, IDX_AGE);
-        maxPower        = getByte(data, charNum, IDX_MPOW);
-        curPower        = getByte(data, charNum, IDX_CPOW);
+        limitPower      = getByte(data, charNum, IDX_POW_LIM);
+        maxPower        = getByte(data, charNum, IDX_POW_MAX);
+        curPower        = getByte(data, charNum, IDX_POW_CUR);
         maxHealth       = getByte(data, charNum, IDX_MHP);
         curHealth       = getByte(data, charNum, IDX_CHP);
 
@@ -229,7 +231,7 @@ public class Character {
         fmt.format("%2s ", "CH");
         fmt.format("%2s ", "LK");
         fmt.format("%7s ", "Health");
-        fmt.format("%7s   ", "Power");
+        fmt.format("%8s ", "Power");
         fmt.format("%5s ", "Bank");
         fmt.format("%2s ", "Wp");
         fmt.format("%2s ", "Ar");
@@ -256,7 +258,8 @@ public class Character {
         fmt.format("%02d ", charisma);
         fmt.format("%02d ", luck);
         fmt.format("%03d/%03d ", curHealth, maxHealth);
-        fmt.format("%03d/%03d%+01d ", curPower, maxPower, powerBoost);
+        fmt.format("%02d/%02d%s%02d ", curPower, maxPower,
+            (powerBoost > 0) ? '+' : '/', limitPower);
         fmt.format("%5d ", gold);
         fmt.format("%02d ", weaponRating);
         fmt.format("%02d ", armorRating);
@@ -333,9 +336,9 @@ public class Character {
     private static final int IDX_LUC      = 0x005;
     // private static final int IDX_AGE   = 0x006; // don't think this is right
     // private static final int IDX_      = 0x007; // all zeroes
-    // private static final int IDX_      = 0x008; // Could be class? F:07, M:0a, P:0c, W:0b
-    private static final int IDX_MPOW     = 0x009;
-    private static final int IDX_CPOW     = 0x00a;
+    private static final int IDX_POW_LIM  = 0x008;
+    private static final int IDX_POW_MAX  = 0x009;
+    private static final int IDX_POW_CUR  = 0x00a;
     private static final int IDX_MHP      = 0x00b;
     private static final int IDX_CHP      = 0x00c;
     private static final int IDX_GOLD     = 0x00d;

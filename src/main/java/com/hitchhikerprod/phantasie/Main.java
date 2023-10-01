@@ -84,6 +84,7 @@ public class Main {
             System.out.printf("  Gold in hand : %d\n", getBytes(partyData, 13, 2));
 
             final List<Integer> items = new ArrayList<>();
+            // According to the manual, we can hold up to 90 (0x5a) items.
             int ptr = 0x53;
             while (true) {
                 final int d = getBytes(partyData, ptr, 1);
