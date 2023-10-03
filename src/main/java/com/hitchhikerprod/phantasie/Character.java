@@ -23,6 +23,7 @@ public class Character {
     private final int constitution;
     private final int charisma;
     private final int luck;
+    private final int status;
 
     private final int attackSkill;
     private final int parrySkill;
@@ -72,6 +73,8 @@ public class Character {
         curHealth       = getByte(data, charNum, IDX_CHP);
 
         gold            = getBytes(data, charNum, IDX_GOLD, 2);
+
+        status          = getByte(data, charNum, IDX_STATUS);
 
         attackSkill     = getByte(data, charNum, IDX_ATTACK);
         parrySkill      = getByte(data, charNum, IDX_PARRY);
@@ -218,12 +221,12 @@ public class Character {
         StringBuilder buffer = new StringBuilder();
         Formatter fmt = new Formatter(buffer);
         buffer.append("    ");
-        fmt.format("%-12s ", "Name");
+        fmt.format("%-20s ", "Name");
         fmt.format("%3s ", "Rac");
         fmt.format("%3s ", "Cls");
         fmt.format("%2s ", "Lv");
         //fmt.format("%3s ", "Age");
-        fmt.format("%6s ", "XP");
+        fmt.format("%10s ", "XP");
         fmt.format("%2s ", "ST");
         fmt.format("%2s ", "IQ");
         fmt.format("%2s ", "DX");
@@ -236,6 +239,7 @@ public class Character {
         fmt.format("%2s ", "Wp");
         fmt.format("%2s ", "Ar");
         fmt.format("%2s ", "Sh");
+        fmt.format("%5s ", "State");
         //unknownBytes.forEach(e -> fmt.format(" %03x", e));
         return buffer.toString();
     }
@@ -245,12 +249,12 @@ public class Character {
         final StringBuilder buffer = new StringBuilder();
         final Formatter fmt = new Formatter(buffer);
         fmt.format("#%02d:", rosterId);
-        fmt.format("%-12s ", name);
+        fmt.format("%-20s ", name);
         fmt.format("%3s ", race.toAbbr());
         fmt.format("%3s ", charClass.toAbbr());
         fmt.format("%2d ", level);
         //fmt.format("%3d ", age);
-        fmt.format("%06d ", experience);
+        fmt.format("%,10d ", experience);
         fmt.format("%02d ", strength);
         fmt.format("%02d ", intelligence);
         fmt.format("%02d ", dexterity);
@@ -264,6 +268,7 @@ public class Character {
         fmt.format("%02d ", weaponRating);
         fmt.format("%02d ", armorRating);
         fmt.format("%02d ", shieldRating);
+        fmt.format("%5s ", statusToString());
 
         /*
         unknown.entrySet().stream()
@@ -271,6 +276,14 @@ public class Character {
             .forEachOrdered(e -> fmt.format(" %03d", e.getValue()));
 */
         return buffer.toString();
+    }
+
+    private String statusToString() {
+        return switch (status) {
+            case 1 -> "okay";
+            case 2 -> "sleep";
+            default -> String.valueOf(status);
+        };
     }
 
     private String runesToString() {
@@ -300,9 +313,9 @@ public class Character {
     public String skillsToString() {
         final StringBuilder buffer = new StringBuilder();
         final Formatter fmt = new Formatter(buffer);
-        fmt.format("  Att:%3d  Par:%3d  Itm:%3d  Spt:%3d  Dis:%3d  Lok:%3d  Swm:%3d",
+        fmt.format("  Att:%3d  Par:%3d  Itm:%3d  Spt:%3d  Dis:%3d  Lok:%3d  Swm:%3d  Lis:%3d",
             attackSkill, parrySkill, findItemSkill, spotTrapSkill, disarmTrapSkill,
-            pickLockSkill, swimSkill);
+            pickLockSkill, swimSkill, listenSkill);
         fmt.format("  Runes:%5s", runesToString());
         return buffer.toString();
     }
@@ -344,7 +357,7 @@ public class Character {
     private static final int IDX_GOLD     = 0x00d;
     // private static final int IDX_      = 0x00f;
     // private static final int IDX_      = 0x010;
-    // private static final int IDX_      = 0x011;
+    private static final int IDX_STATUS   = 0x011;
     // private static final int IDX_      = 0x012;
     private static final int IDX_ATTACK   = 0x013;
     // private static final int IDX_      = 0x014;
